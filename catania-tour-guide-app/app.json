@@ -1,0 +1,10 @@
+{
+  "name": "catania-tour-guide-app",
+  "slug": "catania-tour-guide-app",
+  "android": {
+    "package": "com.anonymous.cataniatourguideapp"
+  },
+  "ios": {
+    "bundleIdentifier": "com.anonymous.cataniatourguideapp"
+  }
+}
