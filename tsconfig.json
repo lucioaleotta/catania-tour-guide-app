@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./app/*"
+      ],
+      "@components/*": [
+        "./app/components/*"
+      ],
+      "@features/*": [
+        "./app/features/*"
+      ],
+      "@assets/*": [
+        "./app/assets/*"
+      ],
+      "@services/*": [
+        "./app/services/*"
+      ],
+      "@hooks/*": [
+        "./app/hooks/*"
+      ]
+    },
+    "jsx": "preserve"
+  },
+  "exclude": [
+    "node_modules"
+  ],
+  "extends": "expo/tsconfig.base"
+}

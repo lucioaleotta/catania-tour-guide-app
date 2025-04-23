@@ -6,19 +6,28 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.yourname.cataniatourguide",
+      "config": {
+        "googleMapsApiKey": "AIzaSyAZNZSczG04YmOyOozobGHRYB7_bzqlU5c"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
+      },
+      "package": "com.yourname.cataniatourguide",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyAZNZSczG04YmOyOozobGHRYB7_bzqlU5c"
+        }
       }
     },
     "web": {
