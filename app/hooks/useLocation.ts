@@ -12,6 +12,7 @@ export const useLocation = () => {
         return;
       }
       const location = await Location.getCurrentPositionAsync({});
+      console.log('Posizione attuale:', location);
       setLocation(location);
     })();
   }, []);

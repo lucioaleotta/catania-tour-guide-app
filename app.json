@@ -2,6 +2,7 @@
   "expo": {
     "name": "catania-tour-guide-app",
     "slug": "catania-tour-guide-app",
+    "newArchEnabled": true,
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -13,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.yourname.cataniatourguide",
+      "bundleIdentifier": "com.trevoo.cataniatourguide",
       "config": {
         "googleMapsApiKey": "AIzaSyAZNZSczG04YmOyOozobGHRYB7_bzqlU5c"
       }
@@ -23,7 +24,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.yourname.cataniatourguide",
+      "package": "com.trevoo.cataniatourguide",
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyAZNZSczG04YmOyOozobGHRYB7_bzqlU5c"

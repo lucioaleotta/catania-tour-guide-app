@@ -3,6 +3,7 @@ export interface Site {
     id: number;
     name: string;
     description: string;
+    detailedDescription: string;
     category: string;
     latitude: number;
     longitude: number;
@@ -10,7 +11,7 @@ export interface Site {
     audioUrlEn: string;
   }
   
-  const BASE_URL = 'https://tuo-backend-url.com/api';
+  const BASE_URL = 'http://localhost:8080/api'; // Modifica l'URL in base al tuo server https://tuo-backend-url.com/api 
   
   export const apiService = {
     getAllSites: async (): Promise<Site[]> => {
