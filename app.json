@@ -16,7 +16,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.trevoo.cataniatourguide",
       "config": {
-        "googleMapsApiKey": "AIzaSyDwPNb3jo2ozgIL_yttM0vRdlNqTZRKh7k"
+        "googleMapsApiKey": "YOUR_GOOGLE_MAPS_API_KEY"
       }
     },
     "android": {
@@ -27,7 +27,7 @@
       "package": "com.trevoo.cataniatourguide",
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyAZNZSczG04YmOyOozobGHRYB7_bzqlU5c"
+          "apiKey": "YOUR_GOOGLE_MAPS_API_KEY"
         }
       }
     },
