@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
 import { useLocation } from '@hooks/useLocation';
 import CataniaMapView from '@features/map/MapView';
 
@@ -8,7 +8,13 @@ export default function HomeScreen() {
   
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Benvenuto a Catania!</Text>
+      <View style={styles.headerContainer}>
+        <Image 
+          source={require('@assets/images/logo.png')} // Assicurati che il percorso sia corretto
+          style={styles.logo}
+        />
+        <Text style={styles.title}>Benvenuto a Catania!</Text>
+      </View>
       <CataniaMapView />
       {location && (
         <Text style={styles.locationText}>
@@ -23,11 +29,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 10,
+  },
+  logo: {
+    width: 40,
+    height: 40,
+    marginRight: 10,
+    resizeMode: 'contain',
+  },
   title: {
     fontSize: 22,
     fontWeight: 'bold',
-    textAlign: 'center',
-    padding: 10,
   },
   locationText: {
     position: 'absolute',

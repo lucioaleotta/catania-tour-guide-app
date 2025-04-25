@@ -34,7 +34,6 @@ export default function CustomMarker({ category }: CustomMarkerProps) {
       case 'mercato':
       case 'mercati':
         return <FontAwesome5 name="shopping-basket" size={20} color="orange" />;
-
       case 'castello':
       case 'castelli':
         return <MaterialIcons name="castle" size={24} color="black" />
