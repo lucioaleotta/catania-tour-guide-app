@@ -1,4 +1,4 @@
-// app/features/map/MapView.tsx
+//app/features/map/MapView.tsx
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View, ActivityIndicator, Platform } from 'react-native';
 import MapView, { Marker, Region } from 'react-native-maps';
@@ -27,14 +27,15 @@ export default function CataniaMapView() {
     longitudeDelta: 0.05,
   } : CATANIA_DEFAULT;
 
-  //console.log('Sites data:', sites);
   // Effetto per centrare la mappa quando la posizione cambia
   useEffect(() => {
     if (location && mapRef.current) {
       mapRef.current.animateToRegion(mapRegion, 1000);
     }
   }, [location]);
-
+  
+  console.log('Regione della mappa:', mapRegion);
+  
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -46,29 +47,29 @@ export default function CataniaMapView() {
   return (
     <View style={styles.container}>
       <MapView
-        //ref={mapRef}
-        provider={Platform.OS === 'android' ? 'google' : null} 
+        ref={mapRef}
+        provider={Platform.OS === 'android' ? 'google' : undefined} 
         style={styles.map}
         initialRegion={CATANIA_DEFAULT}
-        //region={mapRegion}
-        showsUserLocation={false}
-        zoomEnabled
-        scrollEnabled
-        //loadingEnabled={true}
+        showsUserLocation={true}
+        showsMyLocationButton={true}
       >
-       {sites.map(site => (
-          <Marker
-            key={site.id}
-            coordinate={{
-              latitude: site.latitude,
-              longitude: site.longitude
-            }}
-            title={site.name}
-            description={site.description}
-          >
-          <CustomMarker category={site.category} />
-          </Marker>
-        ))}
+        {sites && Array.isArray(sites) && sites.map(site => {
+          console.log('Rendering marker per il sito:', site);
+          return (
+            <Marker
+              key={site.id}
+              coordinate={{
+                latitude: site.latitude,
+                longitude: site.longitude
+              }}
+              title={site.name}
+              description={site.descriptionIt}
+            >
+            <CustomMarker category={site.category} />
+            </Marker>
+          );
+        })}
       </MapView>
     </View>
   );

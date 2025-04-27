@@ -14,7 +14,8 @@ module.exports = function(api) {
             '@features': './app/features',
             '@assets': './app/assets',
             '@hooks': './app/hooks',
-            '@services': './app/services'
+            '@services': './app/services',
+            '@contexts': './app/contexts'
           },
           extensions: ['.js', '.jsx', '.ts', '.tsx']
         }

@@ -2,8 +2,10 @@
 export interface Site {
     id: number;
     name: string;
-    description: string;
-    detailedDescription: string;
+    descriptionIt: string;
+    descriptionEn: string;
+    detailedDescriptionIt: string;
+    detailedDescriptionEn: string;
     category: string;
     latitude: number;
     longitude: number;
