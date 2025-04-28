@@ -1,14 +1,11 @@
-//app/features/map/MapView.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View, ActivityIndicator, Platform } from 'react-native';
-import MapView, { Marker, Region } from 'react-native-maps';
+import MapView, { Marker, Region, Polyline } from 'react-native-maps';
 import { useLocation } from '@hooks/useLocation';
 import CustomMarker from '@components/maps/CustomMarker';
 import SiteDetail from '@features/sites/SiteDetail';
-import { Site } from '@services/api'
-//import { useTranslations } from '@utils/translations';
-
-
+import { Site } from '@services/api';
+import RouteCreator from '@features/routes/RouteCreator';
 
 // Coordinate di Piazza del Duomo di Catania
 const CATANIA_DEFAULT: Region = {
@@ -17,9 +14,6 @@ const CATANIA_DEFAULT: Region = {
   latitudeDelta: 0.05,
   longitudeDelta: 0.05,
 };
-
-//const {getSiteDescription } = useTranslations();
-
 
 interface CataniaMapViewProps {
   sites: Site[];
@@ -30,7 +24,8 @@ export default function CataniaMapView({ sites, loading }: CataniaMapViewProps) 
   const location = useLocation();
   const mapRef = useRef<MapView>(null);
   const [selectedSite, setSelectedSite] = useState<Site | null>(null);
-
+  const [routeSites, setRouteSites] = useState<Site[]>([]);
+  
   // Definire la regione in base alla posizione dell'utente o alla posizione predefinita
   const mapRegion: Region = location ? {
     latitude: location.coords.latitude,
@@ -45,8 +40,52 @@ export default function CataniaMapView({ sites, loading }: CataniaMapViewProps) 
       mapRef.current.animateToRegion(mapRegion, 1000);
     }
   }, [location]);
-
-  console.log('Regione della mappa:', mapRegion);
+  
+  // Gestisce la creazione di un nuovo percorso con controlli più robusti
+  const handleRouteCreated = (route: Site[]) => {
+    console.log("Route received:", route);
+    
+    // Verifica che route sia definito e sia un array
+    if (!route) {
+      console.error("Route is undefined or null");
+      return;
+    }
+    
+    // Assicuriamoci che sia un array
+    if (!Array.isArray(route)) {
+      console.error("Route is not an array:", route);
+      return;
+    }
+    
+    setRouteSites(route);
+    
+    // Calcola i limiti per fare zoom sulla mappa solo se ci sono siti nel percorso
+    if (route.length > 0 && mapRef.current) {
+      try {
+        const coordinates = route.map(site => {
+          // Verifica che i siti abbiano coordinate valide
+          if (!site || typeof site.latitude !== 'number' || typeof site.longitude !== 'number') {
+            console.error("Invalid site coordinates:", site);
+            return null;
+          }
+          return {
+            latitude: site.latitude,
+            longitude: site.longitude,
+          };
+        }).filter(coord => coord !== null);
+        
+        // Verifica che ci siano coordinate valide
+        if (coordinates.length > 0) {
+          mapRef.current.fitToCoordinates(coordinates, {
+            edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+            animated: true,
+          });
+        }
+      } catch (error) {
+        console.error("Error fitting coordinates:", error);
+      }
+    }
+  };
 
   if (loading) {
     return (
@@ -66,31 +105,48 @@ export default function CataniaMapView({ sites, loading }: CataniaMapViewProps) 
         showsUserLocation={true}
         showsMyLocationButton={true}
       >
-        {sites && Array.isArray(sites) && sites.map(site => {
-          console.log('Rendering marker per il sito:', site);
-          return (
-            <Marker
-              key={site.id}
-              coordinate={{
+        {sites && Array.isArray(sites) && sites.map(site => (
+          <Marker
+            key={site.id}
+            coordinate={{
+              latitude: site.latitude,
+              longitude: site.longitude
+            }}
+            title={site.name}
+            onPress={() => setSelectedSite(site)}
+          >
+            <CustomMarker category={site.category} />
+          </Marker>
+        ))}
+        
+        {/* Linea del percorso con controlli aggiuntivi */}
+        {routeSites && Array.isArray(routeSites) && routeSites.length > 1 && (
+          <Polyline
+            coordinates={routeSites
+              .filter(site => site && typeof site.latitude === 'number' && typeof site.longitude === 'number')
+              .map(site => ({
                 latitude: site.latitude,
-                longitude: site.longitude
-              }}
-              title={site.name}
-              //description={getSiteDescription(site).substring(0, 30) + '...'}
-              onPress={() => setSelectedSite(site)}
-            >
-              <CustomMarker category={site.category} />
-            </Marker>
-          );
-        })}
+                longitude: site.longitude,
+              }))}
+            strokeWidth={4}
+            strokeColor="#2196F3"
+          />
+        )}
       </MapView>
+      
       {selectedSite && (
-
         <SiteDetail
           site={selectedSite}
           onClose={() => setSelectedSite(null)}
         />
-
+      )}
+      
+      {/* RouteCreator con il controllo che sites sia definito */}
+      {sites && Array.isArray(sites) && (
+        <RouteCreator 
+          sites={sites} 
+          onRouteCreated={handleRouteCreated} 
+        />
       )}
     </View>
   );

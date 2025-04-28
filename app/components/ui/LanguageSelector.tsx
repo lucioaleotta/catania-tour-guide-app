@@ -17,7 +17,7 @@ export default function LanguageSelector() {
         onPress={() => setLanguage('it')}
       >
         <Image
-          source={require('../../assets/images/italiano.png')}
+          source={require('@assets/images/italiano.png')}
           style={[styles.icon, { width: 16, height: 16, tintColor: language === 'it' ? "#fff" : "#333" }]}
         />
         <Text style={[
@@ -36,7 +36,7 @@ export default function LanguageSelector() {
         onPress={() => setLanguage('en')}
       >
         <Image
-          source={require('../../assets/images/inglese.png')}
+          source={require('@assets/images/inglese.png')}
           style={[styles.icon, { width: 16, height: 16, tintColor: language === 'en' ? "#fff" : "#333" }]}
         />
         <Text style={[

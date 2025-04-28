@@ -58,6 +58,8 @@ export interface Site {
     // Aggiungiamo a apiService
     generateRoute: async (request: RouteRequest): Promise<Site[]> => {
       try {
+        console.log("Sending route request:", request);
+        
         const response = await fetch(`${BASE_URL}/routes/generate`, {
           method: 'POST',
           headers: {
@@ -67,11 +69,21 @@ export interface Site {
         });
         
         if (!response.ok) {
-          throw new Error('Errore nella generazione del percorso');
+          throw new Error(`Errore nella generazione del percorso: ${response.status}`);
         }
         
-        const data: RouteResponse = await response.json();
-        return data.route;
+        const data = await response.json();
+        console.log("Route response - data:", data);
+        console.log("Route response - data.rouute:", data.route);
+        
+        // Verifica che data.route esista e sia un array
+        //if (!data || !data.route || !Array.isArray(data.route)) {
+        if (!data || !Array.isArray(data)) {
+          console.error("Invalid API response structure:", data);
+          return [];
+        }
+        
+        return data;
       } catch (error) {
         console.error('Error generating route:', error);
         return [];
