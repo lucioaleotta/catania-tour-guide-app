@@ -53,5 +53,59 @@ export interface Site {
         console.error(`Error fetching sites for category ${category}:`, error);
         return [];
       }
+    },
+
+    // Aggiungiamo a apiService
+    generateRoute: async (request: RouteRequest): Promise<Site[]> => {
+      try {
+        const response = await fetch(`${BASE_URL}/routes/generate`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(request),
+        });
+        
+        if (!response.ok) {
+          throw new Error('Errore nella generazione del percorso');
+        }
+        
+        const data: RouteResponse = await response.json();
+        return data.route;
+      } catch (error) {
+        console.error('Error generating route:', error);
+        return [];
+      }
+    },
+  
+    checkProximity: async (position: { latitude: number; longitude: number }): Promise<Site[]> => {
+      try {
+        const response = await fetch(`${BASE_URL}/proximity/check`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(position),
+        });
+        
+        if (!response.ok) {
+          throw new Error('Errore nel controllo prossimità');
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error('Error checking proximity:', error);
+        return [];
+      }
     }
   };
+  
+  export interface RouteRequest {
+    sites: number[];
+    startingPoint?: { latitude: number; longitude: number };
+    availableTime?: number;
+  }
+  
+  export interface RouteResponse {
+    route: Site[];
+  }

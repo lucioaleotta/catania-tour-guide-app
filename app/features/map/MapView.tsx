@@ -1,10 +1,14 @@
 //app/features/map/MapView.tsx
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View, ActivityIndicator, Platform } from 'react-native';
 import MapView, { Marker, Region } from 'react-native-maps';
-import { useSites } from '@hooks/useSites';
 import { useLocation } from '@hooks/useLocation';
 import CustomMarker from '@components/maps/CustomMarker';
+import SiteDetail from '@features/sites/SiteDetail';
+import { Site } from '@services/api'
+//import { useTranslations } from '@utils/translations';
+
+
 
 // Coordinate di Piazza del Duomo di Catania
 const CATANIA_DEFAULT: Region = {
@@ -14,10 +18,18 @@ const CATANIA_DEFAULT: Region = {
   longitudeDelta: 0.05,
 };
 
-export default function CataniaMapView() {
-  const { sites, loading, error } = useSites();
+//const {getSiteDescription } = useTranslations();
+
+
+interface CataniaMapViewProps {
+  sites: Site[];
+  loading: boolean;
+}
+
+export default function CataniaMapView({ sites, loading }: CataniaMapViewProps) {
   const location = useLocation();
   const mapRef = useRef<MapView>(null);
+  const [selectedSite, setSelectedSite] = useState<Site | null>(null);
 
   // Definire la regione in base alla posizione dell'utente o alla posizione predefinita
   const mapRegion: Region = location ? {
@@ -33,9 +45,9 @@ export default function CataniaMapView() {
       mapRef.current.animateToRegion(mapRegion, 1000);
     }
   }, [location]);
-  
+
   console.log('Regione della mappa:', mapRegion);
-  
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -48,7 +60,7 @@ export default function CataniaMapView() {
     <View style={styles.container}>
       <MapView
         ref={mapRef}
-        provider={Platform.OS === 'android' ? 'google' : undefined} 
+        provider={Platform.OS === 'android' ? 'google' : undefined}
         style={styles.map}
         initialRegion={CATANIA_DEFAULT}
         showsUserLocation={true}
@@ -64,13 +76,22 @@ export default function CataniaMapView() {
                 longitude: site.longitude
               }}
               title={site.name}
-              description={site.descriptionIt}
+              //description={getSiteDescription(site).substring(0, 30) + '...'}
+              onPress={() => setSelectedSite(site)}
             >
-            <CustomMarker category={site.category} />
+              <CustomMarker category={site.category} />
             </Marker>
           );
         })}
       </MapView>
+      {selectedSite && (
+
+        <SiteDetail
+          site={selectedSite}
+          onClose={() => setSelectedSite(null)}
+        />
+
+      )}
     </View>
   );
 }

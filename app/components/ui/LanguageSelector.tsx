@@ -1,8 +1,8 @@
 // app/components/ui/LanguageSelector.tsx
 import React from 'react';
-import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Text, Image } from 'react-native';
 import { useLanguage } from '@contexts/LanguageContext';
-import { FontAwesome5 } from '@expo/vector-icons';
+
 
 export default function LanguageSelector() {
   const { language, setLanguage } = useLanguage();
@@ -16,11 +16,9 @@ export default function LanguageSelector() {
         ]}
         onPress={() => setLanguage('it')}
       >
-        <FontAwesome5 
-          name="flag" 
-          size={16} 
-          color={language === 'it' ? "#fff" : "#333"} 
-          style={styles.icon} 
+        <Image
+          source={require('../../assets/images/italiano.png')}
+          style={[styles.icon, { width: 16, height: 16, tintColor: language === 'it' ? "#fff" : "#333" }]}
         />
         <Text style={[
           styles.languageText,
@@ -37,11 +35,9 @@ export default function LanguageSelector() {
         ]}
         onPress={() => setLanguage('en')}
       >
-        <FontAwesome5 
-          name="flag-usa" 
-          size={16} 
-          color={language === 'en' ? "#fff" : "#333"} 
-          style={styles.icon} 
+        <Image
+          source={require('../../assets/images/inglese.png')}
+          style={[styles.icon, { width: 16, height: 16, tintColor: language === 'en' ? "#fff" : "#333" }]}
         />
         <Text style={[
           styles.languageText,
