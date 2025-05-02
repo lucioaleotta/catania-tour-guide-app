@@ -34,31 +34,23 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header con logo e messaggio di benvenuto */}
       <View style={styles.header}>
-        <Image 
-          source={require('@assets/images/logo.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        <Text style={styles.welcomeText}>
-          {language === 'it' ? 'Benvenuto a Catania' : 'Welcome to Catania'}
-        </Text>
+        <View style={styles.logoContainer}>
+          <Image 
+            source={require('@assets/images/logo.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
+        <View style={styles.welcomeContainer}>
+          <Text style={styles.welcomeText}>
+            {language === 'it' ? 'Benvenuto a Catania' : 'Welcome to Catania'}
+          </Text>
+        </View>
+        <View style={styles.languageSelectorContainer}>
+          <LanguageSelector />
+        </View>
       </View>
-      
-      {/* Selettore lingua */}
-      <View style={styles.controlsContainer}>
-        <LanguageSelector />
-      </View>
-      
-      {/* Filtro categorie */}
-      <CategoryFilter 
-        categories={categories}
-        selectedCategory={selectedCategory}
-        onSelectCategory={handleCategorySelect}
-      />
-      
-      {/* Mappa */}
       <CataniaMapView 
         sites={filteredSites}
         loading={loading}
@@ -74,26 +66,32 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
+    padding: 10,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
+    height: 60, // Altezza fissa per l'header
+  },
+  logoContainer: {
+    flex: 1, // Occupa 1/4 dello spazio
+    alignItems: 'flex-start',
   },
   logo: {
-    width: 40,
-    height: 40,
-    marginRight: 10,
+    width: 60, // Logo più grande
+    height: 60, // Logo più grande
+  },
+  welcomeContainer: {
+    flex: 2, // Occupa 2/4 dello spazio
+    alignItems: 'center',
   },
   welcomeText: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
+    textAlign: 'center',
   },
-  controlsContainer: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    zIndex: 10,
+  languageSelectorContainer: {
+    flex: 0, // Occupa 1/4 dello spazio
+    alignItems: 'flex-end',
   },
 });

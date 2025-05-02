@@ -1,11 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, View, ActivityIndicator, Platform } from 'react-native';
+import { StyleSheet, View, ActivityIndicator, Platform, SafeAreaView, TouchableOpacity, Text } from 'react-native';
 import MapView, { Marker, Region, Polyline } from 'react-native-maps';
 import { useLocation } from '@hooks/useLocation';
+import { useCategories } from '@hooks/useCategories';
 import CustomMarker from '@components/maps/CustomMarker';
 import SiteDetail from '@features/sites/SiteDetail';
 import { Site } from '@services/api';
 import RouteCreator from '@features/routes/RouteCreator';
+import CategoryGrid from '@components/ui/CategoryGrid';
+import SearchBar from '@components/ui/SearchBar';
+import { useLanguage } from '@contexts/LanguageContext';
 
 // Coordinate di Piazza del Duomo di Catania
 const CATANIA_DEFAULT: Region = {
@@ -23,9 +27,14 @@ interface CataniaMapViewProps {
 export default function CataniaMapView({ sites, loading }: CataniaMapViewProps) {
   const location = useLocation();
   const mapRef = useRef<MapView>(null);
+  const { language } = useLanguage();
+  const { categories, loading: categoriesLoading } = useCategories();
+  
   const [selectedSite, setSelectedSite] = useState<Site | null>(null);
   const [routeSites, setRouteSites] = useState<Site[]>([]);
-  
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+
   // Definire la regione in base alla posizione dell'utente o alla posizione predefinita
   const mapRegion: Region = location ? {
     latitude: location.coords.latitude,
@@ -34,47 +43,43 @@ export default function CataniaMapView({ sites, loading }: CataniaMapViewProps) 
     longitudeDelta: 0.05,
   } : CATANIA_DEFAULT;
 
+  // Filter sites based on selected category and search query
+  const filteredSites = sites?.filter(site => {
+    const matchesCategory = selectedCategory ? site.category === selectedCategory : true;
+    const matchesSearch = searchQuery 
+      ? site.name.toLowerCase().includes(searchQuery.toLowerCase())
+      : true;
+    return matchesCategory && matchesSearch;
+  }) || [];
+
   // Effetto per centrare la mappa quando la posizione cambia
   useEffect(() => {
     if (location && mapRef.current) {
       mapRef.current.animateToRegion(mapRegion, 1000);
     }
   }, [location]);
-  
-  // Gestisce la creazione di un nuovo percorso con controlli più robusti
+
+  const handleCategorySelect = (category: string | null) => {
+    setSelectedCategory(category);
+  };
+
   const handleRouteCreated = (route: Site[]) => {
-    console.log("Route received:", route);
-    
-    // Verifica che route sia definito e sia un array
-    if (!route) {
-      console.error("Route is undefined or null");
+    if (!route || !Array.isArray(route)) {
+      console.error("Invalid route data");
       return;
     }
-    
-    // Assicuriamoci che sia un array
-    if (!Array.isArray(route)) {
-      console.error("Route is not an array:", route);
-      return;
-    }
-    
+
     setRouteSites(route);
-    
-    // Calcola i limiti per fare zoom sulla mappa solo se ci sono siti nel percorso
+
     if (route.length > 0 && mapRef.current) {
       try {
-        const coordinates = route.map(site => {
-          // Verifica che i siti abbiano coordinate valide
-          if (!site || typeof site.latitude !== 'number' || typeof site.longitude !== 'number') {
-            console.error("Invalid site coordinates:", site);
-            return null;
-          }
-          return {
+        const coordinates = route
+          .filter(site => site && typeof site.latitude === 'number' && typeof site.longitude === 'number')
+          .map(site => ({
             latitude: site.latitude,
             longitude: site.longitude,
-          };
-        }).filter(coord => coord !== null);
-        
-        // Verifica che ci siano coordinate valide
+          }));
+
         if (coordinates.length > 0) {
           mapRef.current.fitToCoordinates(coordinates, {
             edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
@@ -87,7 +92,7 @@ export default function CataniaMapView({ sites, loading }: CataniaMapViewProps) 
     }
   };
 
-  if (loading) {
+  if (loading || categoriesLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#0000ff" />
@@ -96,65 +101,72 @@ export default function CataniaMapView({ sites, loading }: CataniaMapViewProps) 
   }
 
   return (
-    <View style={styles.container}>
-      <MapView
-        ref={mapRef}
-        provider={Platform.OS === 'android' ? 'google' : undefined}
-        style={styles.map}
-        initialRegion={CATANIA_DEFAULT}
-        showsUserLocation={true}
-        showsMyLocationButton={true}
-      >
-        {sites && Array.isArray(sites) && sites.map(site => (
-          <Marker
-            key={site.id}
-            coordinate={{
-              latitude: site.latitude,
-              longitude: site.longitude
-            }}
-            title={site.name}
-            onPress={() => setSelectedSite(site)}
-          >
-            <CustomMarker category={site.category} />
-          </Marker>
-        ))}
-        
-        {/* Linea del percorso con controlli aggiuntivi */}
-        {routeSites && Array.isArray(routeSites) && routeSites.length > 1 && (
-          <Polyline
-            coordinates={routeSites
-              .filter(site => site && typeof site.latitude === 'number' && typeof site.longitude === 'number')
-              .map(site => ({
+    <SafeAreaView style={styles.container}>
+      <View style={styles.mapContainer}>
+        <MapView
+          ref={mapRef}
+          provider={Platform.OS === 'android' ? 'google' : undefined}
+          style={styles.map}
+          initialRegion={CATANIA_DEFAULT}
+          showsUserLocation={true}
+          showsMyLocationButton={true}
+        >
+          {filteredSites.map(site => (
+            <Marker
+              key={site.id}
+              coordinate={{
                 latitude: site.latitude,
-                longitude: site.longitude,
-              }))}
-            strokeWidth={4}
-            strokeColor="#2196F3"
+                longitude: site.longitude
+              }}
+              title={site.name}
+              onPress={() => setSelectedSite(site)}
+            >
+              <CustomMarker category={site.category} />
+            </Marker>
+          ))}
+
+          {routeSites && routeSites.length > 1 && (
+            <Polyline
+              coordinates={routeSites
+                .filter(site => site && typeof site.latitude === 'number' && typeof site.longitude === 'number')
+                .map(site => ({
+                  latitude: site.latitude,
+                  longitude: site.longitude,
+                }))}
+              strokeWidth={4}
+              strokeColor="#2196F3"
+            />
+          )}
+        </MapView>
+
+        <SearchBar onSearch={setSearchQuery} />
+
+        {selectedSite && (
+          <SiteDetail
+            site={selectedSite}
+            onClose={() => setSelectedSite(null)}
           />
         )}
-      </MapView>
-      
-      {selectedSite && (
-        <SiteDetail
-          site={selectedSite}
-          onClose={() => setSelectedSite(null)}
-        />
-      )}
-      
-      {/* RouteCreator con il controllo che sites sia definito */}
-      {sites && Array.isArray(sites) && (
-        <RouteCreator 
-          sites={sites} 
-          onRouteCreated={handleRouteCreated} 
-        />
-      )}
-    </View>
+
+        {sites && Array.isArray(sites) && (
+          <RouteCreator 
+            sites={sites} 
+            onRouteCreated={handleRouteCreated} 
+          />
+        )}
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#fff',
+  },
+  mapContainer: {
+    flex: 1,
+    position: 'relative',
   },
   map: {
     width: '100%',
@@ -164,5 +176,23 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  }
+  },
+  allButton: {
+    position: 'absolute',
+    top: 80,
+    right: 20,
+    backgroundColor: '#2196F3',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 25,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  allButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
 });

@@ -1,8 +1,9 @@
-// app/components/ui/CategoryFilter.tsx (aggiornato)
-import React from 'react';
-import { ScrollView, TouchableOpacity, Text, StyleSheet } from 'react-native';
+// app/components/ui/CategoryFilter.tsx
+import React, { useEffect, useState } from 'react';
+import { ScrollView, TouchableOpacity, Text, StyleSheet, View } from 'react-native';
 import { useTranslations } from '@utils/translations';
 import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
+import { apiService } from '@services/api';
 
 interface CategoryFilterProps {
     categories: string[];
@@ -54,62 +55,65 @@ export default function CategoryFilter({
                 return <FontAwesome5 name="cross" size={16} color={selectedCategory === category ? "white" : "darkred"} style={styles.categoryIcon}/>;
             case 'monumento':
             case 'monumenti':
-                return <FontAwesome5 name="monument" size={16} color={selectedCategory === category ? "white" : "green"} style={styles.categoryIcon}/>;// Aggiungi altre categorie secondo necessità...
+                return <FontAwesome5 name="monument" size={16} color={selectedCategory === category ? "white" : "green"} style={styles.categoryIcon}/>;
+            case 'food':
+                return <FontAwesome5 name="utensils" size={16} color={selectedCategory === category ? "white" : "orange"} style={styles.categoryIcon}/>;
             default:
                 return <FontAwesome5 name="map-marker-alt" size={16} color={selectedCategory === category ? "white" : "red"} style={styles.categoryIcon} />;
         }
     };
 
     return (
-        <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.container}
-        >
-            <TouchableOpacity
-                style={[
-                    styles.categoryButton,
-                    selectedCategory === null && styles.selectedCategoryButton
-                ]}
-                onPress={() => onSelectCategory(null)}
+        <View style={styles.filterContainer}>
+            <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.container}
             >
-                <FontAwesome5
-                    name="list"
-                    size={16}
-                    color={selectedCategory === null ? "white" : "#333"}
-                    style={styles.categoryIcon}
-                />
-                <Text style={[
-                    styles.categoryText,
-                    selectedCategory === null && styles.selectedCategoryText
-                ]}>
-                    {t('allCategories')}
-                </Text>
-            </TouchableOpacity>
-
-            {categories.map(category => (
                 <TouchableOpacity
-                    key={category}
                     style={[
                         styles.categoryButton,
-                        selectedCategory === category && styles.selectedCategoryButton
+                        selectedCategory === null && styles.selectedCategoryButton
                     ]}
-                    onPress={() => onSelectCategory(category)}
+                    onPress={() => onSelectCategory(null)}
                 >
-                    {getCategoryIcon(category)}
                     <Text style={[
                         styles.categoryText,
-                        selectedCategory === category && styles.selectedCategoryText
+                        selectedCategory === null && styles.selectedCategoryText
                     ]}>
-                        {getCategoryTranslation(category)}
+                        {t('allCategories')}
                     </Text>
                 </TouchableOpacity>
-            ))}
-        </ScrollView>
+
+                {categories.map(category => (
+                    <TouchableOpacity
+                        key={category}
+                        style={[
+                            styles.categoryButton,
+                            selectedCategory === category && styles.selectedCategoryButton
+                        ]}
+                        onPress={() => onSelectCategory(category)}
+                    >
+                        {getCategoryIcon(category)}
+                        <Text style={[
+                            styles.categoryText,
+                            selectedCategory === category && styles.selectedCategoryText
+                        ]}>
+                            {getCategoryTranslation(category)}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
+            </ScrollView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
+    filterContainer: {
+        backgroundColor: '#f9f9f9',
+        borderBottomWidth: 1,
+        borderBottomColor: '#e0e0e0',
+    },
     container: {
         paddingVertical: 10,
         paddingHorizontal: 10,
