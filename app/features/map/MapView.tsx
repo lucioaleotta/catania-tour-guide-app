@@ -1,17 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, View, ActivityIndicator, Platform, SafeAreaView, TouchableOpacity, Text } from 'react-native';
+import { StyleSheet, View, ActivityIndicator, Platform, SafeAreaView, TouchableOpacity, Text, Alert } from 'react-native';
 import MapView, { Marker, Region, Polyline } from 'react-native-maps';
 import { useLocation } from '@hooks/useLocation';
 import { useCategories } from '@hooks/useCategories';
 import CustomMarker from '@components/maps/CustomMarker';
 import SiteDetail from '@features/sites/SiteDetail';
-import { Site } from '@services/api';
-import RouteCreator from '@features/routes/RouteCreator';
-import CategoryGrid from '@components/ui/CategoryGrid';
-import SearchBar from '@components/ui/SearchBar';
+import { Site, apiService } from '@services/api';
+import RouteCreator, { RouteCreatorRef } from '@features/routes/RouteCreator';
+import CategoryFilter from '@components/ui/CategoryFilter';
 import { useLanguage } from '@contexts/LanguageContext';
+import { FontAwesome5 } from '@expo/vector-icons';
+import { useTranslations } from '@utils/translations';
 
-// Coordinate di Piazza del Duomo di Catania
 const CATANIA_DEFAULT: Region = {
   latitude: 37.5022,
   longitude: 15.0873,
@@ -24,18 +24,23 @@ interface CataniaMapViewProps {
   loading: boolean;
 }
 
+interface RouteData {
+  selectedSites: Site[];
+  time: string;
+  isAutoRoute: boolean;
+}
+
 export default function CataniaMapView({ sites, loading }: CataniaMapViewProps) {
   const location = useLocation();
   const mapRef = useRef<MapView>(null);
   const { language } = useLanguage();
   const { categories, loading: categoriesLoading } = useCategories();
-  
+  const routeCreatorRef = useRef<RouteCreatorRef>(null);
   const [selectedSite, setSelectedSite] = useState<Site | null>(null);
   const [routeSites, setRouteSites] = useState<Site[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const { t } = useTranslations();
 
-  // Definire la regione in base alla posizione dell'utente o alla posizione predefinita
   const mapRegion: Region = location ? {
     latitude: location.coords.latitude,
     longitude: location.coords.longitude,
@@ -43,52 +48,94 @@ export default function CataniaMapView({ sites, loading }: CataniaMapViewProps) 
     longitudeDelta: 0.05,
   } : CATANIA_DEFAULT;
 
-  // Filter sites based on selected category and search query
   const filteredSites = sites?.filter(site => {
-    const matchesCategory = selectedCategory ? site.category === selectedCategory : true;
-    const matchesSearch = searchQuery 
-      ? site.name.toLowerCase().includes(searchQuery.toLowerCase())
-      : true;
-    return matchesCategory && matchesSearch;
+    if (selectedCategories.length === 0) return true;
+    return selectedCategories.includes(site.category);
   }) || [];
 
-  // Effetto per centrare la mappa quando la posizione cambia
   useEffect(() => {
     if (location && mapRef.current) {
       mapRef.current.animateToRegion(mapRegion, 1000);
     }
   }, [location]);
 
-  const handleCategorySelect = (category: string | null) => {
-    setSelectedCategory(category);
+  const handleSelectAll = () => {
+    if (selectedCategories.length === categories?.length) {
+      setSelectedCategories([]);
+    } else {
+      setSelectedCategories(categories || []);
+    }
   };
 
-  const handleRouteCreated = (route: Site[]) => {
-    if (!route || !Array.isArray(route)) {
-      console.error("Invalid route data");
-      return;
-    }
-
-    setRouteSites(route);
-
-    if (route.length > 0 && mapRef.current) {
-      try {
-        const coordinates = route
-          .filter(site => site && typeof site.latitude === 'number' && typeof site.longitude === 'number')
-          .map(site => ({
-            latitude: site.latitude,
-            longitude: site.longitude,
-          }));
-
-        if (coordinates.length > 0) {
-          mapRef.current.fitToCoordinates(coordinates, {
-            edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
-            animated: true,
-          });
-        }
-      } catch (error) {
-        console.error("Error fitting coordinates:", error);
+  const handleCategorySelect = (category: string) => {
+    setSelectedCategories(prev => {
+      if (prev.includes(category)) {
+        return prev.filter(cat => cat !== category);
+      } else {
+        return [...prev, category];
       }
+    });
+  };
+
+  const handleRouteCreated = async (routeData: RouteData) => {
+    try {
+      const { selectedSites, time, isAutoRoute } = routeData;
+      
+      if (isAutoRoute) {
+        // Converti il tempo nel formato corretto
+        const timeMap: { [key: string]: number } = {
+          '1 ora': 1,
+          '2 ore': 2,
+          '3 ore': 3,
+          'Mezza giornata': 0.5,
+          'Giornata intera': 1
+        };
+  
+        const availableTime = timeMap[time] || 1;
+  
+        // Chiamata al backend
+        const response = await apiService.generateRoute({
+          sites: [],
+          availableTime,
+          startingPoint: location ? {
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude
+          } : {
+            latitude: 37.5022,
+            longitude: 15.0873
+          }
+        });
+  
+        // La risposta è già l'array dei siti
+        setRouteSites(response);
+  
+        // Aggiorna la vista della mappa con i nuovi siti
+        if (mapRef.current && response.length > 0) {
+          const coordinates = response
+            .filter(site => site && typeof site.latitude === 'number' && typeof site.longitude === 'number')
+            .map(site => ({
+              latitude: site.latitude,
+              longitude: site.longitude,
+            }));
+  
+          if (coordinates.length > 0) {
+            mapRef.current.fitToCoordinates(coordinates, {
+              edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+              animated: true,
+            });
+          }
+        }
+      } else {
+        // Se non è una rotta automatica, usa i siti selezionati
+        setRouteSites(selectedSites);
+      }
+    } catch (error) {
+      console.error('Error handling route creation:', error);
+      Alert.alert(
+        t('error'),
+        t('errorGeneratingRoute'),
+        [{ text: t('ok'), onPress: () => {} }]
+      );
     }
   };
 
@@ -110,6 +157,7 @@ export default function CataniaMapView({ sites, loading }: CataniaMapViewProps) 
           initialRegion={CATANIA_DEFAULT}
           showsUserLocation={true}
           showsMyLocationButton={true}
+          customMapStyle={mapStyle}
         >
           {filteredSites.map(site => (
             <Marker
@@ -139,7 +187,24 @@ export default function CataniaMapView({ sites, loading }: CataniaMapViewProps) 
           )}
         </MapView>
 
-        <SearchBar onSearch={setSearchQuery} />
+        <View style={styles.categoryFilterContainer}>
+          <CategoryFilter
+            categories={categories || []}
+            selectedCategories={selectedCategories}
+            onSelectCategory={handleCategorySelect}
+            onSelectAll={handleSelectAll}
+          />
+        </View>
+
+        <TouchableOpacity 
+          style={styles.createRouteButton}
+          onPress={() => routeCreatorRef.current?.show()}
+        >
+          <FontAwesome5 name="route" size={20} color="white" />
+          <Text style={styles.createRouteButtonText}>
+            {t('createRoute')}
+          </Text>
+        </TouchableOpacity>
 
         {selectedSite && (
           <SiteDetail
@@ -148,42 +213,73 @@ export default function CataniaMapView({ sites, loading }: CataniaMapViewProps) 
           />
         )}
 
-        {sites && Array.isArray(sites) && (
-          <RouteCreator 
-            sites={sites} 
-            onRouteCreated={handleRouteCreated} 
-          />
-        )}
+        <RouteCreator 
+          ref={routeCreatorRef}
+          sites={sites} 
+          onRouteCreated={handleRouteCreated}
+          selectedCategories={selectedCategories}
+        />
       </View>
     </SafeAreaView>
   );
 }
 
+const mapStyle = [
+  {
+    featureType: 'poi',
+    elementType: 'all',
+    stylers: [{ visibility: 'off' }]
+  },
+  {
+    featureType: 'transit',
+    elementType: 'all',
+    stylers: [{ visibility: 'off' }]
+  },
+  {
+    featureType: 'administrative',
+    elementType: 'labels',
+    stylers: [{ visibility: 'simplified' }]
+  },
+  {
+    featureType: 'road',
+    elementType: 'labels',
+    stylers: [{ visibility: 'simplified' }]
+  }
+];
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   mapContainer: {
     flex: 1,
     position: 'relative',
   },
   map: {
-    width: '100%',
-    height: '100%',
+    ...StyleSheet.absoluteFillObject,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  allButton: {
+  categoryFilterContainer: {
     position: 'absolute',
-    top: 80,
+    top: 10,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 10,
+    zIndex: 999,
+  },
+  createRouteButton: {
+    position: 'absolute',
+    bottom: 20,
     right: 20,
     backgroundColor: '#2196F3',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderRadius: 25,
     elevation: 5,
     shadowColor: '#000',
@@ -191,8 +287,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
   },
-  allButtonText: {
+  createRouteButtonText: {
     color: 'white',
-    fontWeight: 'bold',
-  },
+    marginLeft: 8,
+    fontSize: 16,
+    fontWeight: '500',
+  }
 });
+

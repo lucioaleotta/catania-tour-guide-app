@@ -1,4 +1,3 @@
-// app/components/ui/LanguageSelector.tsx
 import React from 'react';
 import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
 import { useLanguage } from '@contexts/LanguageContext';
@@ -22,7 +21,6 @@ export default function LanguageSelector() {
           IT
         </Text>
       </TouchableOpacity>
-
       <TouchableOpacity
         style={[
           styles.languageButton,
@@ -44,13 +42,14 @@ export default function LanguageSelector() {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    borderRadius: 20,
+    borderRadius: 12,
     overflow: 'hidden',
     backgroundColor: '#f2f2f2',
+    height: 24, // Altezza fissa più piccola
   },
   languageButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingVertical: 4, // Padding ridotto
+    paddingHorizontal: 8, // Padding ridotto
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -58,7 +57,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#333',
   },
   languageText: {
-    fontSize: 16,
+    fontSize: 12, // Font size ridotto
     fontWeight: 'bold',
     color: '#333',
   },

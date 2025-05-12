@@ -10,6 +10,7 @@ export const useCategories = () => {
       try {
         const sites = await apiService.getAllSites();
         const data = Array.from(new Set(sites.map(site => site.category)));
+        console.log('Fetched categories:', data);
         setCategories(data);
       } catch (error) {
         console.error('Error in useCategories:', error);

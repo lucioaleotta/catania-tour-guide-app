@@ -70,18 +70,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
-    height: 60, // Altezza fissa per l'header
+    height: 60,
   },
   logoContainer: {
-    flex: 1, // Occupa 1/4 dello spazio
-    alignItems: 'flex-start',
+    width: 50, // Larghezza fissa per il logo
+    marginRight: 10,
   },
   logo: {
-    width: 60, // Logo più grande
-    height: 60, // Logo più grande
+    width: 40,
+    height: 40,
   },
   welcomeContainer: {
-    flex: 2, // Occupa 2/4 dello spazio
+    flex: 1, // Prende tutto lo spazio rimanente
     alignItems: 'center',
   },
   welcomeText: {
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   languageSelectorContainer: {
-    flex: 0, // Occupa 1/4 dello spazio
-    alignItems: 'flex-end',
+    width: 70, // Larghezza fissa per il selettore
+    alignItems: 'center',
   },
 });

@@ -25,7 +25,20 @@ export const useTranslations = () => {
       close: '×',
       errorLoadingSites: 'Impossibile caricare i siti turistici',
       errorGeneratingRoute: 'Errore nella generazione del percorso',
-      errorProximityCheck: 'Errore nel controllo prossimità'
+      errorProximityCheck: 'Errore nel controllo prossimità',
+      // Nuove traduzioni
+      letMeGuideYou: 'Lasciati guidare',
+      createCustomRoute: 'Crea percorso personalizzato',
+      autoRouteDescription: 'Ti suggerirò il percorso migliore in base al tempo che hai',
+      customRouteDescription: 'Seleziona i luoghi che vuoi visitare',
+      selectTime: 'Seleziona il tempo a disposizione',
+      error: 'Errore',
+      ok: 'OK',
+      availableTime: 'Tempo a disposizione',
+      createRouteButton: 'Crea Percorso',
+      routeCreated: 'Percorso creato con successo',
+      selectAtLeastOne: 'Seleziona almeno un luogo da visitare',
+      timeRequired: 'Seleziona il tempo a disposizione'
     },
     en: {
       allCategories: 'All',
@@ -46,7 +59,20 @@ export const useTranslations = () => {
       close: '×',
       errorLoadingSites: 'Unable to load tourist sites',
       errorGeneratingRoute: 'Error generating route',
-      errorProximityCheck: 'Error checking proximity'
+      errorProximityCheck: 'Error checking proximity',
+      // New translations
+      letMeGuideYou: 'Let me guide you',
+      createCustomRoute: 'Create custom route',
+      autoRouteDescription: 'I will suggest the best route based on your time',
+      customRouteDescription: 'Select the places you want to visit',
+      selectTime: 'Select available time',
+      error: 'Error',
+      ok: 'OK',
+      availableTime: 'Available time',
+      createRouteButton: 'Create Route',
+      routeCreated: 'Route created successfully',
+      selectAtLeastOne: 'Select at least one place to visit',
+      timeRequired: 'Select available time'
     }
   };
 
