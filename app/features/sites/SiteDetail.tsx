@@ -18,6 +18,8 @@ export default function SiteDetail({ site, onClose }: SiteDetailProps) {
   const detailedDescription = getSiteDetailedDescription(site);
   const audioUrl = getSiteAudioUrl(site);
   const categoryName = getCategoryTranslation(site.category);
+
+  console.log('SiteDetail', { site, description, detailedDescription, audioUrl, categoryName });
   
   return (
     <View style={styles.container}>
@@ -41,7 +43,7 @@ export default function SiteDetail({ site, onClose }: SiteDetailProps) {
         
         <View style={styles.audioContainer}>
           <Text style={styles.audioTitle}>{t('audioGuide')}</Text>
-          <AudioPlayer audioUrl={audioUrl} />
+          {audioUrl ? <AudioPlayer audioUrl={audioUrl} /> : null}
         </View>
       </ScrollView>
     </View>

@@ -90,7 +90,7 @@ export const useTranslations = () => {
   };
 
   const getSiteAudioUrl = (site: Site): string => {
-    return language === 'it' ? site.audioUrlIt : site.audioUrlEn;
+    return language === 'it' ? site.signedAudioUrlIt : site.signedAudioUrlEn;
   };
 
   // Traduzioni per le categorie

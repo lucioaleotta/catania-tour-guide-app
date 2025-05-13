@@ -9,8 +9,8 @@ export interface Site {
     category: string;
     latitude: number;
     longitude: number;
-    audioUrlIt: string;
-    audioUrlEn: string;
+    signedAudioUrlIt: string;
+    signedAudioUrlEn: string;
   }
   
   const BASE_URL = 'http://localhost:8080/api'; // Modifica l'URL in base al tuo server https://tuo-backend-url.com/api 

@@ -1,6 +1,5 @@
-// app/features/audio/AudioPlayer.tsx (aggiornato)
 import React, { useState, useEffect } from 'react';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, Text, StyleSheet, Alert } from 'react-native';
 import { Audio } from 'expo-av';
 import { FontAwesome } from '@expo/vector-icons';
 import { useTranslations } from '@utils/translations';
@@ -16,16 +15,46 @@ export default function AudioPlayer({ audioUrl }: AudioPlayerProps) {
   const { t } = useTranslations();
 
   useEffect(() => {
-    return sound
-      ? () => {
-          sound.unloadAsync();
-        }
-      : undefined;
-  }, [sound]);
+    // Configura l'audio quando il componente viene montato
+    Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+      staysActiveInBackground: true,
+      playsInSilentModeIOS: true,
+      shouldDuckAndroid: true,
+      playThroughEarpieceAndroid: false,
+    });
+
+    return () => {
+      // Pulisci quando il componente viene smontato
+      if (sound) {
+        sound.unloadAsync();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    // Resetta il sound quando cambia l'URL
+    if (sound) {
+      sound.unloadAsync();
+      setSound(null);
+      setIsPlaying(false);
+    }
+  }, [audioUrl]);
 
   const playSound = async () => {
     try {
+      // Se non c'è URL, mostra un errore
+      if (!audioUrl) {
+        Alert.alert(
+          t('error'),
+          t('audioNotAvailable'),
+          [{ text: t('ok'), onPress: () => {} }]
+        );
+        return;
+      }
+
       if (sound) {
+        // Se il suono è già caricato, gestisci play/pause
         if (isPlaying) {
           await sound.pauseAsync();
           setIsPlaying(false);
@@ -34,31 +63,59 @@ export default function AudioPlayer({ audioUrl }: AudioPlayerProps) {
           setIsPlaying(true);
         }
       } else {
+        // Carica e riproduci il nuovo suono
         setLoading(true);
+        
+        // Controlla che l'URL sia valido
+        const audioSource = { uri: audioUrl };
+        if (!audioSource.uri) {
+          throw new Error('Invalid audio URL');
+        }
+
         const { sound: newSound } = await Audio.Sound.createAsync(
-          { uri: audioUrl },
-          { shouldPlay: true }
+          audioSource,
+          { shouldPlay: true },
+          (status) => {
+            // Callback di stato
+            if (status.isLoaded) {
+              if (!status.isPlaying && status.didJustFinish) {
+                setIsPlaying(false);
+              }
+            }
+          }
         );
+
         setSound(newSound);
         setIsPlaying(true);
-        
-        newSound.setOnPlaybackStatusUpdate((status) => {
-          if (status.isLoaded && !status.isBuffering && 'didJustFinish' in status && status.didJustFinish) {
-            setIsPlaying(false);
-          }
-        });
       }
     } catch (error) {
-      console.error('Error playing sound', error);
+      console.error('Error playing sound:', error);
+      Alert.alert(
+        t('error'),
+        t('errorPlayingAudio'),
+        [{ text: t('ok'), onPress: () => {} }]
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  // Gestisci il caso in cui non c'è URL audio
+  if (!audioUrl) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>{t('audioNotAvailable')}</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <TouchableOpacity 
-        style={styles.playButton} 
+        style={[
+          styles.playButton,
+          loading && styles.disabledButton
+        ]} 
         onPress={playSound}
         disabled={loading}
       >
@@ -75,7 +132,6 @@ export default function AudioPlayer({ audioUrl }: AudioPlayerProps) {
   );
 }
 
-// Gli stili rimangono invariati...
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
@@ -91,7 +147,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 15,
   },
+  disabledButton: {
+    backgroundColor: '#cccccc',
+  },
   text: {
     fontSize: 16,
+    color: '#333',
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#ff0000',
   }
 });
